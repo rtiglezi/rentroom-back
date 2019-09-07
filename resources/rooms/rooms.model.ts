@@ -1,12 +1,18 @@
 import * as mongoose from 'mongoose'
 import { Tenant } from '../tenants/tenants.model';
 
+
 export interface Room extends mongoose.Document {
     tenant: mongoose.Types.ObjectId | Tenant
     name: string,
-    value: number,
+    schedule: [{ 
+        hour: string, 
+        value: string,
+        isActive: boolean
+    }],
     isActive: boolean
 }
+
 
 
 const roomSchema = new mongoose.Schema({
@@ -19,10 +25,12 @@ const roomSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    value: {
-        type: Number,
-        required: true,
-        default: 0.00
+    schedule: {
+        type: [{ 
+            hour: String, 
+            value: String,
+            isActive: Boolean
+        }]
     },
     isActive: {
         type: Boolean,

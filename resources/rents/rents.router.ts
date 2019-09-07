@@ -50,8 +50,6 @@ class RentsRouter extends ModelRouter<Rent> {
           "$lt": date2
         }
       })
-
-      console.log("-======>", query)
     }
 
     let profiles = req.authenticated.profiles
@@ -82,11 +80,9 @@ class RentsRouter extends ModelRouter<Rent> {
 
 
   save = (req, resp, next) => {
-    // insere a identificação do inquilino no "body" da requisição
     req.body.tenant = req.authenticated.tenant
-    // cria um novo documento com os atributos do body
+    req.body.user = req.authenticated._id
     let document = new Rent(req.body)
-    // salva o documento no banco de dados
     document.save()
       .then(obj => resp.json(obj))
       .catch(next)
