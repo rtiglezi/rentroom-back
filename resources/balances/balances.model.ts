@@ -1,22 +1,19 @@
-import { User } from './../users/users.model';
+import { User } from '../users/users.model';
 import * as mongoose from 'mongoose'
 import { Tenant } from '../tenants/tenants.model';
-import { Room } from '../rooms/rooms.model';
 
-export interface Rent extends mongoose.Document {
+export interface Balance extends mongoose.Document {
     tenant: mongoose.Types.ObjectId | Tenant
     user: mongoose.Types.ObjectId | User
-    room: mongoose.Types.ObjectId | Room
-    roomName: String,
-    date: string,
-    hour: string,
+    date: String
     value: number
-    patient: string
+    transaction: string
     obs: string
+
 }
 
 
-const rentSchema = new mongoose.Schema({
+const balanceSchema = new mongoose.Schema({
     tenant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tenant',
@@ -27,20 +24,7 @@ const rentSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    room: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Room',
-        required: true
-    },
-    roomName: {
-        type: String,
-        required: true
-    },
     date: {
-        type: String,
-        required: true
-    },
-    hour: {
         type: String,
         required: true
     },
@@ -49,7 +33,7 @@ const rentSchema = new mongoose.Schema({
         required: true,
         default: 0.00
     },
-    patient: {
+    transaction: {
         type: String
     },
     obs: {
@@ -77,8 +61,8 @@ const updateMiddleware = function (next) {
 
 
 /* middleware para criptografar a senha no momento de alterar */
-rentSchema.pre('findOneAndUpdate', updateMiddleware)
-rentSchema.pre('update', updateMiddleware)
+balanceSchema.pre('findOneAndUpdate', updateMiddleware)
+balanceSchema.pre('update', updateMiddleware)
 
 
-export const Rent = mongoose.model<Rent>('Rent', rentSchema)
+export const Balance = mongoose.model<Balance>('Balance', balanceSchema)

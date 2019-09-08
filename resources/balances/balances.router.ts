@@ -4,15 +4,14 @@ import { authorize } from '../../security/authz.handler';
 import { NotFoundError } from 'restify-errors';
 import { ModelRouter } from '../../common/model.router';
 
-import { Rent } from './rents.model';
-
-import { Balance } from './../balances/balances.model';
+import { Balance } from './balances.model';
 
 
-class RentsRouter extends ModelRouter<Rent> {
+
+class BalancesRouter extends ModelRouter<Balance> {
 
   constructor() {
-    super(Rent)
+    super(Balance)
   }
 
   findBySpecificTenant = (req, resp, next) => {
@@ -20,10 +19,10 @@ class RentsRouter extends ModelRouter<Rent> {
       "tenant": escape(req.query.tenant)
     }
     if (req.query.tenant) {
-      Rent.find(query)
-        .then(rent => {
-          rent ? [rent] : []
-          resp.json(rent)
+      Balance.find(query)
+        .then(balance => {
+          balance ? [balance] : []
+          resp.json(balance)
         })
         .catch(next)
     } else {
@@ -40,24 +39,29 @@ class RentsRouter extends ModelRouter<Rent> {
       Object.assign(query, { room: escape(req.query.room) })
     }
 
-    if (req.query.user) {
-      Object.assign(query, { user: escape(req.query.user) })
-    }
-
     if (req.query.date) {
+
+      let date1 = new Date(`${req.query.date}T00:00:00.000Z`)
+      let datex = new Date(`${req.query.date}T00:00:00.000Z`)
+      let date2 = new Date(datex.setDate(datex.getDate() + 1))
+
       Object.assign(query, {
-        date: req.query.date
+        date: {
+          "$gte": date1,
+          "$lt": date2
+        }
       })
     }
 
     let profiles = req.authenticated.profiles
+    let allowedBalances = req.authenticated.allowedBalances
     if ((profiles.indexOf('master') == -1) && (profiles.indexOf('admin') == -1)) {
-      Object.assign(query, { "_id": { $in: req.authenticated._id } })
+      Object.assign(query, { "_id": { $in: allowedBalances } })
     }
 
     this.model
       .find(query)
-      .sort({ created_at: -1 })
+      .sort({ name: 1 })
       .then(obj => resp.json(obj))
       .catch(next)
   }
@@ -68,7 +72,7 @@ class RentsRouter extends ModelRouter<Rent> {
       "_id": req.params.id,
       "tenant": req.authenticated.tenant
     }
-    Rent.findOne(query)
+    Balance.findOne(query)
       .then(obj => {
         resp.json(obj)
       })
@@ -79,26 +83,14 @@ class RentsRouter extends ModelRouter<Rent> {
   save = (req, resp, next) => {
     req.body.tenant = req.authenticated.tenant
     req.body.user = req.authenticated._id
-    let document = new Rent(req.body)
+    let document = new Balance(req.body)
     document.save()
       .then(
-
-        obj => {
-          let balance = {
-            tenant: obj.tenant,
-            user: obj.user,
-            date: new Date(),
-            value: obj.value,
-            transaction: 'D',
-            obs: 'Débito por reserva de sala.'
+          obj => {
+            
+            resp.json(obj)
           }
-          let doc = new Balance(balance)
-          doc.save()
-            .then(
-              resp.json(obj)
-            )
-        }
-      )
+        )
       .catch(next)
   }
 
@@ -109,7 +101,7 @@ class RentsRouter extends ModelRouter<Rent> {
       "tenant": req.authenticated.tenant
     }
     const options = { runValidators: true, overwrite: true }
-    Rent.update(query, req.body, options)
+    Balance.update(query, req.body, options)
       .exec().then(result => {
         if (result.n) {
           return this.model.findById(req.params.id).exec()
@@ -128,7 +120,7 @@ class RentsRouter extends ModelRouter<Rent> {
       "tenant": req.authenticated.tenant
     }
     const options = { runValidators: true, new: true }
-    Rent.findOneAndUpdate(query, req.body, options)
+    Balance.findOneAndUpdate(query, req.body, options)
       .then(obj => resp.json(obj))
       .catch(next)
   }
@@ -137,10 +129,9 @@ class RentsRouter extends ModelRouter<Rent> {
   delete = (req, resp, next) => {
     let query = {
       "_id": req.params.id,
-      "tenant": req.authenticated.tenant,
-      "user": req.authenticated._id
+      "tenant": req.authenticated.tenant
     }
-    Rent.remove(query)
+    Balance.remove(query)
       .exec()
       .then(() => {
         resp.send(204)
@@ -148,39 +139,16 @@ class RentsRouter extends ModelRouter<Rent> {
       }).catch(next)
   }
 
-  chargeBackBalance(req, resp, next) {
-    let query = {
-      "_id": req.params.id
-    }
-    Rent.findOne(query)
-      .then(obj => {
-        let balance = {
-          tenant: obj.tenant,
-          user: obj.user,
-          date: new Date(),
-          value: obj.value,
-          transaction: 'C',
-          obs: 'Estorno por cancelamento de reserva de sala.'
-        }
-        let doc = new Balance(balance)
-        doc.save()
-          .then(
-            next()
-          )
-      })
-      .catch()
-  }
-
 
 
   applyRoutes(application: restify.Server) {
     application.get(`${this.basePath}`, [authorize('user'), this.findBySpecificTenant, this.findAll])
     application.get(`${this.basePath}/:id`, [authorize('user'), this.validateId, this.findById])
-    application.post(`${this.basePath}`, [authorize('user'), this.save])
-    application.put(`${this.basePath}/:id`, [authorize('user'), this.validateId, this.replace])
-    application.patch(`${this.basePath}/:id`, [authorize('user'), this.validateId, this.update])
-    application.del(`${this.basePath}/:id`, [authorize('user'), this.validateId, this.chargeBackBalance, this.delete])
+    application.post(`${this.basePath}`, [authorize('admin'), this.save])
+    application.put(`${this.basePath}/:id`, [authorize('admin'), this.validateId, this.replace])
+    application.patch(`${this.basePath}/:id`, [authorize('admin'), this.validateId, this.update])
+    application.del(`${this.basePath}/:id`, [authorize('admin'), this.validateId, this.delete])
   }
 }
 
-export const rentsRouter = new RentsRouter()
+export const balancesRouter = new BalancesRouter()
