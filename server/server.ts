@@ -54,7 +54,8 @@ export class Server {
                     origins: [
                         'http://localhost:4200', 
                         'http://localhost:8081',
-                        'http://192.168.15.27:8081'
+                        'http://192.168.15.27:8081',
+                        'http://192.168.43.101:8081'
                     ],
                     allowHeaders: ['authorization'],
                     exposeHeaders: ['x-custom-header']

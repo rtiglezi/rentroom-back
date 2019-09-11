@@ -44,12 +44,19 @@ class RentsRouter extends ModelRouter<Rent> {
       Object.assign(query, { user: escape(req.query.user) })
     }
 
-    if (req.query.date) {
+    if (req.query.dates) {
+
+      let dts = req.query.dates
+      dts = dts.split(",")
+
       Object.assign(query, {
-        date: req.query.date
+        date: { $in: dts}
       })
     }
 
+    console.log(query)
+
+    
     let profiles = req.authenticated.profiles
     if ((profiles.indexOf('master') == -1) && (profiles.indexOf('admin') == -1)) {
       Object.assign(query, { "_id": { $in: req.authenticated._id } })
