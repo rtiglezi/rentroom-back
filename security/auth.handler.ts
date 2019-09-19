@@ -32,6 +32,7 @@ export const authenticate: restify.RequestHandler = (req, resp, next) => {
                   name: user.name, 
                   email: user.email, 
                   profiles: user.profiles,
+                  acceptedContract: user.acceptedContract,
                   accessToken: token                    
                 })
               

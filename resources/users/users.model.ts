@@ -21,8 +21,8 @@ export interface User extends mongoose.Document {
     matches(password: string): boolean,
     profiles: string[],
     hasAny(...profiles: string[]): boolean,
-    allowedRooms: [mongoose.Types.ObjectId | Room],
-    lastRoom: mongoose.Types.ObjectId | Room
+    lastRoom: mongoose.Types.ObjectId | Room,
+    acceptedContract: boolean
 }
 
 export interface UserModel extends mongoose.Model<User> {
@@ -73,15 +73,13 @@ const userSchema = new mongoose.Schema({
         type: [String],
         required: false
     },
-    allowedRooms: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Room',
-        required: false
-    }],
     lastRoom: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Room',
         required: false
+    },
+    acceptedContract : {
+        type: Boolean
     }
 }, {
         timestamps: {

@@ -53,15 +53,7 @@ class RentsRouter extends ModelRouter<Rent> {
         date: { $in: dts}
       })
     }
-
-    console.log(query)
-
     
-    let profiles = req.authenticated.profiles
-    if ((profiles.indexOf('master') == -1) && (profiles.indexOf('admin') == -1)) {
-      Object.assign(query, { "_id": { $in: req.authenticated._id } })
-    }
-
     this.model
       .find(query)
       .sort({ created_at: -1 })
@@ -134,6 +126,7 @@ class RentsRouter extends ModelRouter<Rent> {
       "_id": req.params.id,
       "tenant": req.authenticated.tenant
     }
+    console.log(req.body)
     const options = { runValidators: true, new: true }
     Rent.findOneAndUpdate(query, req.body, options)
       .then(obj => resp.json(obj))

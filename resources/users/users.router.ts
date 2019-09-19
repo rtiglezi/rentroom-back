@@ -143,6 +143,9 @@ class UsersRouter extends ModelRouter<User>  {
       Object.assign(query, { "tenant": req.authenticated.tenant })
       Object.assign(queryAnd, { "profiles": { $nin: ["admin", "master"] } })
     }
+
+    console.log(query)
+
     User.findOne({ $and: [query, queryAnd] })
       .then(obj => {
         resp.json(obj)
@@ -169,6 +172,9 @@ class UsersRouter extends ModelRouter<User>  {
     // cria um novo documento com os atributos do body
     let document = new User(req.body)
     // salva o documento no banco de dados
+
+    console.log(document)
+
     document.save()
       .then(obj => resp.json(obj))
       .catch(next)
@@ -286,9 +292,36 @@ class UsersRouter extends ModelRouter<User>  {
   }
 
 
+  acceptedContract(req, resp, next) {
+    User.findOne({ "_id": req.authenticated._id })
+      .then(obj => {
+        if (obj.acceptedContract) {
+          resp.json({ acceptedContract: true })
+        } else {
+          resp.json({ acceptedContract: false })
+        }
+      })
+      .catch(next)
+  }
+
+  acceptContract(req, resp, next) {
+    if (req.authenticated._id.toString() === req.body._id.toString()) {
+      const options = { runValidators: true, new: true }
+      User.findOneAndUpdate({ "_id": req.authenticated._id }, { acceptedContract: true }, options)
+        .then(obj => resp.json(obj))
+        .catch(next)
+    } else {
+      resp.json({ "err": "Invalid request" })
+    }
+  }
+
+
 
 
   applyRoutes(application: restify.Server) {
+
+    application.get(`${this.basePath}/acceptedcontract`, this.acceptedContract)
+
 
     // rotas para o CRUD de usuarios
 
@@ -315,6 +348,7 @@ class UsersRouter extends ModelRouter<User>  {
     application.get(`${this.basePath}/resetpass/form/:token/:linkFront`, resetPasswordForm)
     application.post(`${this.basePath}/resetpass/:token/:linkFront`, resetPassword)
 
+    application.post(`${this.basePath}/acceptcontract`, this.acceptContract)
 
   }
 

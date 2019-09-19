@@ -34,12 +34,6 @@ class RoomsRouter extends ModelRouter<Room> {
 
     let query = { "tenant": req.authenticated.tenant }
 
-    let profiles = req.authenticated.profiles
-    let allowedRooms = req.authenticated.allowedRooms
-    if ((profiles.indexOf('master') == -1) && (profiles.indexOf('admin') == -1)) {
-      Object.assign(query, { "_id": { $in: allowedRooms } })
-    }
-
     this.model
       .find(query)
       .sort({ name: 1 })
