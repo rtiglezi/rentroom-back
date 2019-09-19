@@ -2,11 +2,8 @@
    constantes e alguns valores defaults que o servidor poderá
    recuperar. Serão setadas variáveis de ambiente, que se não
    forem informadas terão valores pré-definidos. */
-
-
-   
 export const environment = {
-    server: { port: process.env.SERVER_PORT || 8080 },
+    server: { port: process.env.PORT || 3000 },
     db: { url: process.env.URL_DB || 'mongodb://soladmin:sAzc2dmn@ds259347.mlab.com:59347/heroku_8k9fhjpq' },
     security: {
         saltRounds: process.env.SALT_ROUNDS || 10,
