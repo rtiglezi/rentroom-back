@@ -6,7 +6,7 @@
 
    
 export const environment = {
-    server: { port: process.env.SERVER_PORT || 3000 },
+    server: { port: process.env.SERVER_PORT || 8080 },
     db: { url: process.env.URL_DB || 'mongodb://soladmin:sAzc2dmn@ds259347.mlab.com:59347/heroku_8k9fhjpq' },
     security: {
         saltRounds: process.env.SALT_ROUNDS || 10,
