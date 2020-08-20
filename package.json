@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
-    "bcrypt": "3.0.6",
+    "bcrypt": "5.0.0",
     "ip": "^1.1.5",
     "jsonwebtoken": "8.1.1",
     "mongoose": "4.13.9",
